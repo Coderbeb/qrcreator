@@ -3,7 +3,6 @@ from werkzeug.utils import secure_filename
 import os
 from models import db, User, Work, QRCode
 from utils import send_otp, verify_otp, allowed_file, generate_otp, generate_qr
-from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -132,8 +131,11 @@ def delete_qr(qr_id):
 def scan_qr(qr_id):
     qr = QRCode.query.get_or_404(qr_id)
     if request.method == 'POST':
-        email = request.form['email']
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        city = request.form['city']
         phone = request.form['phone']
+        email = request.form['email']
         # Check if already registered
         user = User.query.filter_by(email=email, qr_id=qr_id).first()
         if user:
@@ -142,7 +144,15 @@ def scan_qr(qr_id):
         # Generate and send OTP
         otp = generate_otp()
         send_otp(email, otp)
-        session['pending_user'] = {'email': email, 'phone': phone, 'qr_id': qr_id, 'otp': otp}
+        session['pending_user'] = {
+            'first_name': first_name,
+            'last_name': last_name,
+            'city': city,
+            'phone': phone,
+            'email': email,
+            'qr_id': qr_id,
+            'otp': otp
+        }
         return redirect(url_for('otp_verify'))
     return render_template('register.html', qr=qr)
 
@@ -155,7 +165,14 @@ def otp_verify():
         user_otp = request.form['otp']
         if verify_otp(pending['otp'], user_otp):
             # Register user
-            user = User(email=pending['email'], phone=pending['phone'], qr_id=pending['qr_id'])
+            user = User(
+                first_name=pending['first_name'],
+                last_name=pending['last_name'],
+                city=pending['city'],
+                phone=pending['phone'],
+                email=pending['email'],
+                qr_id=pending['qr_id']
+            )
             db.session.add(user)
             db.session.commit()
             qr = QRCode.query.get(pending['qr_id'])
@@ -181,7 +198,6 @@ def otp_verify():
             flash('Invalid OTP. Please try again.', 'danger')
     return render_template('otp.html')
 
-# Analytics page (optional)
 @app.route('/analytics')
 def analytics():
     if not session.get('admin'):

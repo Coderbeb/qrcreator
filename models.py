@@ -20,6 +20,9 @@ class QRCode(db.Model):
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120))
+    first_name = db.Column(db.String(50))
+    last_name = db.Column(db.String(50))
+    city = db.Column(db.String(50))
     phone = db.Column(db.String(20))
+    email = db.Column(db.String(120))
     qr_id = db.Column(db.Integer)
