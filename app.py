@@ -6,27 +6,33 @@ from models import db, User, Work, QRCode
 from utils import send_otp, verify_otp, allowed_file, generate_otp, generate_qr
 
 app = Flask(__name__)
+
+# Use secret key from environment or fallback
 app.secret_key = os.environ.get("SECRET_KEY", "your_secret_key")
 
-# Database URI fix for Render
+# Database URI configuration for Render or local use
 if 'DATABASE_URL' in os.environ:
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL'].replace('postgres://', 'postgresql://')
 else:
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///qrcreator.db'
 
+# Static upload folder
 app.config['UPLOAD_FOLDER'] = 'static/images'
-db.init_app(app)
-
-# Ensure upload folder exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-# ========== ROUTE: Home ==========
+db.init_app(app)
+
+# Ensure tables are created when the app starts
+with app.app_context():
+    db.create_all()
+
+
 @app.route('/')
 def index():
     works = Work.query.all()
     return render_template('index.html', works=works)
 
-# ========== ROUTE: Login ==========
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -37,13 +43,13 @@ def login():
             flash('Invalid credentials', 'danger')
     return render_template('login.html')
 
-# ========== ROUTE: Logout ==========
+
 @app.route('/logout')
 def logout():
     session.pop('admin', None)
     return redirect(url_for('index'))
 
-# ========== ROUTE: Admin Dashboard ==========
+
 @app.route('/admin')
 def admin():
     if not session.get('admin'):
@@ -52,7 +58,7 @@ def admin():
     qrcodes = QRCode.query.all()
     return render_template('admin.html', works=works, qrcodes=qrcodes)
 
-# ========== ROUTE: Add Work ==========
+
 @app.route('/add_work', methods=['GET', 'POST'])
 def add_work():
     if not session.get('admin'):
@@ -73,7 +79,7 @@ def add_work():
         return redirect(url_for('admin'))
     return render_template('work_form.html', action='Add')
 
-# ========== ROUTE: Edit Work ==========
+
 @app.route('/edit_work/<int:work_id>', methods=['GET', 'POST'])
 def edit_work(work_id):
     if not session.get('admin'):
@@ -94,7 +100,7 @@ def edit_work(work_id):
         return redirect(url_for('admin'))
     return render_template('work_form.html', action='Edit', work=work)
 
-# ========== ROUTE: Delete Work ==========
+
 @app.route('/delete_work/<int:work_id>')
 def delete_work(work_id):
     if not session.get('admin'):
@@ -104,7 +110,7 @@ def delete_work(work_id):
     db.session.commit()
     return redirect(url_for('admin'))
 
-# ========== ROUTE: Add QR Code ==========
+
 @app.route('/add_qr', methods=['GET', 'POST'])
 def add_qr():
     if not session.get('admin'):
@@ -131,7 +137,7 @@ def add_qr():
         )
         db.session.add(qr)
         db.session.commit()
-        # Generate QR code image after commit (to get QR id)
+        # Generate QR code image
         qr_url = url_for('scan_qr', qr_id=qr.id, _external=True)
         qr_image_filename = f"qr_{qr.id}.png"
         generate_qr(qr_url, os.path.join(app.config['UPLOAD_FOLDER'], qr_image_filename))
@@ -140,7 +146,7 @@ def add_qr():
         return redirect(url_for('admin'))
     return render_template('qr_form.html')
 
-# ========== ROUTE: Delete QR ==========
+
 @app.route('/delete_qr/<int:qr_id>')
 def delete_qr(qr_id):
     if not session.get('admin'):
@@ -150,7 +156,7 @@ def delete_qr(qr_id):
     db.session.commit()
     return redirect(url_for('admin'))
 
-# ========== ROUTE: Scan QR ==========
+
 @app.route('/scan/<int:qr_id>', methods=['GET', 'POST'])
 def scan_qr(qr_id):
     qr = QRCode.query.get_or_404(qr_id)
@@ -160,12 +166,10 @@ def scan_qr(qr_id):
         city = request.form['city']
         phone = request.form['phone']
         email = request.form['email']
-        # Check if already registered
         user = User.query.filter_by(email=email, qr_id=qr_id).first()
         if user:
             flash('You have already registered with this QR code.', 'danger')
             return render_template('sorry.html')
-        # Generate and send OTP
         otp = generate_otp()
         send_otp(email, otp)
         session['pending_user'] = {
@@ -180,7 +184,7 @@ def scan_qr(qr_id):
         return redirect(url_for('otp_verify'))
     return render_template('register.html', qr=qr)
 
-# ========== ROUTE: OTP Verification ==========
+
 @app.route('/otp', methods=['GET', 'POST'])
 def otp_verify():
     pending = session.get('pending_user')
@@ -189,7 +193,6 @@ def otp_verify():
     if request.method == 'POST':
         user_otp = request.form['otp']
         if verify_otp(pending['otp'], user_otp):
-            # Register user
             user = User(
                 first_name=pending['first_name'],
                 last_name=pending['last_name'],
@@ -208,7 +211,6 @@ def otp_verify():
                 qr.used = True
                 db.session.commit()
             session.pop('pending_user')
-            # Show offer/content/links/images
             if qr.offer:
                 return render_template('offer.html', offer=qr.offer)
             elif qr.links:
@@ -223,7 +225,7 @@ def otp_verify():
             flash('Invalid OTP. Please try again.', 'danger')
     return render_template('otp.html')
 
-# ========== ROUTE: Analytics ==========
+
 @app.route('/analytics')
 def analytics():
     if not session.get('admin'):
@@ -232,8 +234,6 @@ def analytics():
     qrcodes = QRCode.query.all()
     return render_template('analytics.html', users=users, qrcodes=qrcodes)
 
-# ========== MAIN ==========
-if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
+
+if __name__ == '__main__':
     app.run(debug=True)
