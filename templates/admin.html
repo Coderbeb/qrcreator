@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard - qrcreator</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header>
+    <h1>Admin Dashboard</h1>
+    <a href="{{ url_for('logout') }}" class="login-btn">Logout</a>
+  </header>
+  <section>
+    <h2>Manage Our Work</h2>
+    <a href="{{ url_for('add_work') }}" class="login-btn">Add New Work</a>
+    {% for work in works %}
+      <div class="work-item">
+        <h3>{{ work.title }}</h3>
+        <p>{{ work.description }}</p>
+        <div class="work-images">
+          {% for image in work.images.split(',') if work.images %}
+            <img src="{{ url_for('static', filename='images/' ~ image) }}" alt="Work Image">
+          {% endfor %}
+        </div>
+        <a href="{{ url_for('edit_work', work_id=work.id) }}" class="login-btn">Edit</a>
+        <a href="{{ url_for('delete_work', work_id=work.id) }}" class="login-btn" style="background:#e53935;">Delete</a>
+      </div>
+    {% endfor %}
+  </section>
+  <section>
+    <h2>Manage QR Codes</h2>
+    <a href="{{ url_for('add_qr') }}" class="login-btn">Add New QR Code</a>
+    {% for qr in qrcodes %}
+      <div class="work-item">
+        <h3>QR Code #{{ qr.id }}</h3>
+        {% if qr.qr_image %}
+          <img src="{{ url_for('static', filename='images/' ~ qr.qr_image) }}" alt="QR Image" style="max-width:120px;">
+        {% endif %}
+        <p>Type: {{ qr.qr_type }} | One Time: {{ 'Yes' if qr.one_time else 'No' }}</p>
+        <a href="{{ url_for('delete_qr', qr_id=qr.id) }}" class="login-btn" style="background:#e53935;">Delete</a>
+      </div>
+    {% endfor %}
+  </section>
+  <section>
+    <h2>Analytics</h2>
+    <a href="{{ url_for('analytics') }}" class="login-btn">View Analytics</a>
+  </section>
+</body>
+</html>

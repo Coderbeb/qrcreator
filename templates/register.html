@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register - qrcreator</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h2>Register to Access Content</h2>
+  <form method="post">
+    <input type="text" name="first_name" placeholder="First Name" required><br>
+    <input type="text" name="last_name" placeholder="Last Name" required><br>
+    <input type="text" name="city" placeholder="City" required><br>
+    <input type="text" name="phone" placeholder="Phone Number" required><br>
+    <input type="email" name="email" placeholder="Email" required><br>
+    <button type="submit" class="login-btn">Send OTP</button>
+  </form>
+</body>
+</html>

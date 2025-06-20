@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add QR Code - qrcreator</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h2>Add QR Code</h2>
+  <form method="post" enctype="multipart/form-data">
+    <label>QR Type:</label>
+    <select name="qr_type">
+      <option value="link">Link</option>
+      <option value="image">Image</option>
+      <option value="offer">Offer</option>
+    </select><br>
+    <label>Links (one per line):</label>
+    <textarea name="links"></textarea><br>
+    <label>Images:</label>
+    <input type="file" name="images" multiple><br>
+    <label>Offer (if any):</label>
+    <input type="text" name="offer"><br>
+    <label>One Time Scan:</label>
+    <input type="checkbox" name="one_time" checked><br>
+    <button type="submit" class="login-btn">Add QR Code</button>
+  </form>
+  <a href="{{ url_for('admin') }}">Back to Dashboard</a>
+</body>
+</html>

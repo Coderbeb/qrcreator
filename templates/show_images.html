@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Images - qrcreator</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h2>Shared Images</h2>
+  <div>
+    {% for image in images %}
+      <img src="{{ url_for('static', filename='images/' ~ image) }}" alt="Shared Image" style="max-width:300px;margin:10px;">
+    {% endfor %}
+  </div>
+</body>
+</html>

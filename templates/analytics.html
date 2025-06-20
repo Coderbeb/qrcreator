@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Analytics - qrcreator</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h2>Analytics</h2>
+  <h3>Registered Users</h3>
+  <table>
+    <tr><th>Email</th><th>Phone</th><th>QR Code ID</th></tr>
+    {% for user in users %}
+      <tr>
+        <td>{{ user.email }}</td>
+        <td>{{ user.phone }}</td>
+        <td>{{ user.qr_id }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+  <h3>QR Codes</h3>
+  <table>
+    <tr><th>ID</th><th>Type</th><th>One Time</th><th>Used</th></tr>
+    {% for qr in qrcodes %}
+      <tr>
+        <td>{{ qr.id }}</td>
+        <td>{{ qr.qr_type }}</td>
+        <td>{{ 'Yes' if qr.one_time else 'No' }}</td>
+        <td>{{ 'Yes' if qr.used else 'No' }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+</body>
+</html>
