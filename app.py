@@ -1,6 +1,6 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file, Response
 from werkzeug.utils import secure_filename
-import os, io, zipfile
+import os, io, zipfile, csv
 from models import db, User, Work, QRCode
 from utils import send_otp, verify_otp, allowed_file, generate_otp, generate_qr
 
@@ -222,6 +222,21 @@ def analytics():
     users = User.query.all()
     qrcodes = QRCode.query.all()
     return render_template('analytics.html', users=users, qrcodes=qrcodes)
+
+@app.route('/download_users_csv')
+def download_users_csv():
+    users = User.query.all()
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['First Name', 'Last Name', 'City', 'Email', 'Phone', 'QR ID'])
+    for u in users:
+        writer.writerow([u.first_name, u.last_name, u.city, u.email, u.phone, u.qr_id])
+    output.seek(0)
+    return Response(
+        output,
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment;filename=users.csv"}
+    )
 
 if __name__ == '__main__':
     app.run(debug=True)
