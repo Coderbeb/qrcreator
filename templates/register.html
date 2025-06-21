@@ -3,17 +3,100 @@
 <head>
   <meta charset="UTF-8">
   <title>Register - qrcreator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f8f8f8;
+      margin: 0;
+      padding: 0;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      background-color: #ffffff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .header img {
+      height: 40px;
+      margin-right: 10px;
+    }
+
+    .header h1 {
+      font-size: 20px;
+      color: #333;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 400px;
+      margin: 40px auto;
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+
+    form input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 12px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .login-btn:hover {
+      background-color: #45a049;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        margin: 20px;
+        padding: 15px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h2>Register to Access Content</h2>
-  <form method="post">
-    <input type="text" name="first_name" placeholder="First Name" required><br>
-    <input type="text" name="last_name" placeholder="Last Name" required><br>
-    <input type="text" name="city" placeholder="City" required><br>
-    <input type="text" name="phone" placeholder="Phone Number" required><br>
-    <input type="email" name="email" placeholder="Email" required><br>
-    <button type="submit" class="login-btn">Send OTP</button>
-  </form>
+
+  <!-- Logo and Brand Name -->
+  <div class="header">
+    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
+    <h1>qrcreator</h1>
+  </div>
+
+  <!-- Registration Form -->
+  <div class="container">
+    <h2>Register to Access Content</h2>
+    <form method="post">
+      <input type="text" name="first_name" placeholder="First Name" required>
+      <input type="text" name="last_name" placeholder="Last Name" required>
+      <input type="text" name="city" placeholder="City" required>
+      <input type="text" name="phone" placeholder="Phone Number" required>
+      <input type="email" name="email" placeholder="Email" required>
+      <button type="submit" class="login-btn">Send OTP</button>
+    </form>
+  </div>
+
 </body>
 </html>

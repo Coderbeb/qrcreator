@@ -3,13 +3,40 @@
 <head>
   <meta charset="UTF-8">
   <title>Admin Dashboard - qrcreator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    @media screen and (max-width: 600px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      header h1 {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+      }
+
+      .login-btn {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 10px;
+      }
+
+      .work-images img {
+        max-width: 100%;
+        height: auto;
+        margin-bottom: 10px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <header>
+  <header style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
     <h1>Admin Dashboard</h1>
     <a href="{{ url_for('logout') }}" class="login-btn">Logout</a>
   </header>
+
   <section>
     <h2>Manage Our Work</h2>
     <a href="{{ url_for('add_work') }}" class="login-btn">Add New Work</a>
@@ -27,6 +54,7 @@
       </div>
     {% endfor %}
   </section>
+
   <section>
     <h2>Manage QR Codes</h2>
     <a href="{{ url_for('add_qr') }}" class="login-btn">Add New QR Code</a>
@@ -34,13 +62,14 @@
       <div class="work-item">
         <h3>QR Code #{{ qr.id }}</h3>
         {% if qr.qr_image %}
-          <img src="{{ url_for('static', filename='images/' ~ qr.qr_image) }}" alt="QR Image" style="max-width:120px;">
+          <img src="{{ url_for('static', filename='images/' ~ qr.qr_image) }}" alt="QR Image" style="max-width:120px; width: 100%; height: auto;">
         {% endif %}
         <p>Type: {{ qr.qr_type }} | One Time: {{ 'Yes' if qr.one_time else 'No' }}</p>
         <a href="{{ url_for('delete_qr', qr_id=qr.id) }}" class="login-btn" style="background:#e53935;">Delete</a>
       </div>
     {% endfor %}
   </section>
+
   <section>
     <h2>Analytics</h2>
     <a href="{{ url_for('analytics') }}" class="login-btn">View Analytics</a>

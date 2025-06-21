@@ -1,37 +1,28 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
 from werkzeug.utils import secure_filename
-import os
-
+import os, io, zipfile
 from models import db, User, Work, QRCode
 from utils import send_otp, verify_otp, allowed_file, generate_otp, generate_qr
 
 app = Flask(__name__)
 
-# Use secret key from environment or fallback
 app.secret_key = os.environ.get("SECRET_KEY", "your_secret_key")
-
-# Database URI configuration for Render or local use
 if 'DATABASE_URL' in os.environ:
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL'].replace('postgres://', 'postgresql://')
 else:
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///qrcreator.db'
 
-# Static upload folder
 app.config['UPLOAD_FOLDER'] = 'static/images'
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-
 db.init_app(app)
 
-# Ensure tables are created when the app starts
 with app.app_context():
     db.create_all()
-
 
 @app.route('/')
 def index():
     works = Work.query.all()
     return render_template('index.html', works=works)
-
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -43,12 +34,10 @@ def login():
             flash('Invalid credentials', 'danger')
     return render_template('login.html')
 
-
 @app.route('/logout')
 def logout():
     session.pop('admin', None)
     return redirect(url_for('index'))
-
 
 @app.route('/admin')
 def admin():
@@ -57,7 +46,6 @@ def admin():
     works = Work.query.all()
     qrcodes = QRCode.query.all()
     return render_template('admin.html', works=works, qrcodes=qrcodes)
-
 
 @app.route('/add_work', methods=['GET', 'POST'])
 def add_work():
@@ -79,7 +67,6 @@ def add_work():
         return redirect(url_for('admin'))
     return render_template('work_form.html', action='Add')
 
-
 @app.route('/edit_work/<int:work_id>', methods=['GET', 'POST'])
 def edit_work(work_id):
     if not session.get('admin'):
@@ -100,7 +87,6 @@ def edit_work(work_id):
         return redirect(url_for('admin'))
     return render_template('work_form.html', action='Edit', work=work)
 
-
 @app.route('/delete_work/<int:work_id>')
 def delete_work(work_id):
     if not session.get('admin'):
@@ -109,7 +95,6 @@ def delete_work(work_id):
     db.session.delete(work)
     db.session.commit()
     return redirect(url_for('admin'))
-
 
 @app.route('/add_qr', methods=['GET', 'POST'])
 def add_qr():
@@ -127,25 +112,32 @@ def add_qr():
                 images.append(filename)
         offer = request.form.get('offer', '')
         one_time = True if request.form.get('one_time') == 'on' else False
-        qr = QRCode(
-            qr_type=qr_type,
-            links=','.join(links),
-            images=','.join(images),
-            offer=offer,
-            one_time=one_time,
-            used=False
-        )
-        db.session.add(qr)
-        db.session.commit()
-        # Generate QR code image
-        qr_url = url_for('scan_qr', qr_id=qr.id, _external=True)
-        qr_image_filename = f"qr_{qr.id}.png"
-        generate_qr(qr_url, os.path.join(app.config['UPLOAD_FOLDER'], qr_image_filename))
-        qr.qr_image = qr_image_filename
-        db.session.commit()
-        return redirect(url_for('admin'))
-    return render_template('qr_form.html')
+        quantity = int(request.form.get('quantity', 1))
 
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
+            for i in range(quantity):
+                qr = QRCode(
+                    qr_type=qr_type,
+                    links=','.join(links),
+                    images=','.join(images),
+                    offer=offer,
+                    one_time=one_time,
+                    used=False
+                )
+                db.session.add(qr)
+                db.session.flush()
+                qr_url = url_for('scan_qr', qr_id=qr.id, _external=True)
+                qr_image_filename = f"qr_{qr.id}.png"
+                qr_image_path = os.path.join(app.config['UPLOAD_FOLDER'], qr_image_filename)
+                generate_qr(qr_url, qr_image_path)
+                qr.qr_image = qr_image_filename
+                db.session.flush()
+                zip_file.write(qr_image_path, qr_image_filename)
+            db.session.commit()
+        zip_buffer.seek(0)
+        return send_file(zip_buffer, as_attachment=True, download_name='qr_codes.zip', mimetype='application/zip')
+    return render_template('qr_form.html')
 
 @app.route('/delete_qr/<int:qr_id>')
 def delete_qr(qr_id):
@@ -155,7 +147,6 @@ def delete_qr(qr_id):
     db.session.delete(qr)
     db.session.commit()
     return redirect(url_for('admin'))
-
 
 @app.route('/scan/<int:qr_id>', methods=['GET', 'POST'])
 def scan_qr(qr_id):
@@ -183,7 +174,6 @@ def scan_qr(qr_id):
         }
         return redirect(url_for('otp_verify'))
     return render_template('register.html', qr=qr)
-
 
 @app.route('/otp', methods=['GET', 'POST'])
 def otp_verify():
@@ -225,7 +215,6 @@ def otp_verify():
             flash('Invalid OTP. Please try again.', 'danger')
     return render_template('otp.html')
 
-
 @app.route('/analytics')
 def analytics():
     if not session.get('admin'):
@@ -233,7 +222,6 @@ def analytics():
     users = User.query.all()
     qrcodes = QRCode.query.all()
     return render_template('analytics.html', users=users, qrcodes=qrcodes)
-
 
 if __name__ == '__main__':
     app.run(debug=True)

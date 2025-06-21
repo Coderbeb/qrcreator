@@ -3,14 +3,73 @@
 <head>
   <meta charset="UTF-8">
   <title>Links - qrcreator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    header img {
+      height: 40px;
+      margin-right: 10px;
+    }
+
+    h2 {
+      color: #2c3e50;
+    }
+
+    ul {
+      padding-left: 0;
+      list-style-type: none;
+    }
+
+    li {
+      margin-bottom: 15px;
+    }
+
+    a {
+      text-decoration: none;
+      color: #2980b9;
+      font-weight: bold;
+      word-break: break-all;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .no-links {
+      color: #999;
+      font-style: italic;
+    }
+  </style>
 </head>
 <body>
-  <h2>Shared Links</h2>
-  <ul>
-    {% for link in links %}
-      <li><a href="{{ link }}" target="_blank">{{ link }}</a></li>
-    {% endfor %}
-  </ul>
+  <header>
+    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
+    <h2>Shared Links</h2>
+  </header>
+
+  {% if links %}
+    <ul>
+      {% for link in links %}
+        <li><a href="{{ link }}" target="_blank">{{ link }}</a></li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="no-links">No links found for this QR code.</p>
+  {% endif %}
 </body>
 </html>

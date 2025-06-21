@@ -12,8 +12,7 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 def allowed_file(filename):
     """Check if a file is an allowed type (image)."""
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def generate_otp():
@@ -30,13 +29,14 @@ def send_otp(email, otp):
 
     try:
         with smtplib.SMTP('smtp.gmail.com', 587) as server:
+            print("[SMTP] Connecting...")
             server.starttls()
             server.login(os.environ.get("EMAIL_USER"), os.environ.get("EMAIL_PASS"))
             server.send_message(msg)
-            print(f"OTP sent to {email}")
+            print(f"[SMTP] OTP sent to {email}")
     except Exception as e:
-        print(f"Failed to send OTP to {email}: {e}")
-        flash("Failed to send OTP. Please try again later.", "danger")
+        print(f"[SMTP ERROR] Failed to send OTP to {email}: {e}")
+        flash("Failed to send OTP. Please check your email or try again later.", "danger")
 
 
 def verify_otp(sent_otp, user_otp):

@@ -4,6 +4,17 @@
   <meta charset="UTF-8">
   <title>Add QR Code - qrcreator</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .link-input { margin-bottom: 5px; }
+    .add-link-btn {
+      margin: 5px 0;
+      padding: 5px 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
   <h2>Add QR Code</h2>
@@ -14,16 +25,42 @@
       <option value="image">Image</option>
       <option value="offer">Offer</option>
     </select><br>
-    <label>Links (one per line):</label>
-    <textarea name="links"></textarea><br>
+
+    <!-- Dynamic Links Section -->
+    <label>Links:</label>
+    <div id="link-fields">
+      <input type="text" name="links" class="link-input" placeholder="https://example.com/page1" required><br>
+    </div>
+    <button type="button" class="add-link-btn" onclick="addLinkField()">+ Add Another Link</button><br>
+
     <label>Images:</label>
     <input type="file" name="images" multiple><br>
+
     <label>Offer (if any):</label>
     <input type="text" name="offer"><br>
+
     <label>One Time Scan:</label>
     <input type="checkbox" name="one_time" checked><br>
-    <button type="submit" class="login-btn">Add QR Code</button>
+
+    <label>Quantity (per item):</label>
+    <input type="number" name="quantity" min="1" value="1"><br>
+
+    <button type="submit" class="login-btn">Generate & Download ZIP</button>
   </form>
+
   <a href="{{ url_for('admin') }}">Back to Dashboard</a>
+
+  <script>
+    function addLinkField() {
+      const container = document.getElementById('link-fields');
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.name = 'links';
+      input.className = 'link-input';
+      input.placeholder = 'https://example.com/pageX';
+      container.appendChild(input);
+      container.appendChild(document.createElement('br'));
+    }
+  </script>
 </body>
 </html>
